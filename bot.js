@@ -1,53 +1,73 @@
 const mineflayer = require('mineflayer')
 
-// CHANGE THESE:
+// ===== CONFIG =====
 const SERVER_HOST = 'UNEARTHED-cPZO.aternos.me'
 const SERVER_PORT = 49899
-const BOT_USERNAME = 'AFK_Bot'
-const BOT_PASSWORD = 'password'  // for LoginTo plugin
+const BOT_PASSWORD = 'bot123'
 
-function createBot() {
+// Add as many bots as you want here
+const BOT_USERNAMES = [
+  'AFK_Bot1',
+  'AFK_Bot2',
+  'AFK_Bot3'
+]
+
+// ===== BOT FUNCTION =====
+function createBot(username) {
+  console.log(`Starting bot: ${username}`)
+
   const bot = mineflayer.createBot({
     host: SERVER_HOST,
     port: SERVER_PORT,
-    username: BOT_USERNAME
+    username: username
   })
 
   bot.on('spawn', () => {
-    console.log('Bot joined the server!')
+    console.log(`${username} joined`)
 
-    // Register first time
+    // Register + login
     setTimeout(() => {
       bot.chat(`/register ${BOT_PASSWORD} ${BOT_PASSWORD}`)
-      bot.chat(`/login ${BOT_PASSWORD}`)
-    }, 3000)
+    }, 2000)
 
-    // Random small movement to avoid AFK kick
+    setTimeout(() => {
+      bot.chat(`/login ${BOT_PASSWORD}`)
+    }, 4000)
+
+    // Anti-AFK movement
     setInterval(() => {
       bot.setControlState('jump', true)
       setTimeout(() => bot.setControlState('jump', false), 500)
     }, 30000)
   })
 
-  bot.on('error', (err) => {
-    console.log('Error:', err)
+  bot.on('end', () => {
+    console.log(`${username} disconnected. Reconnecting...`)
+    setTimeout(() => createBot(username), 2000)
   })
 
-  bot.on('end', () => {
-    console.log('Bot disconnected, reconnecting in 30s...')
-    setTimeout(createBot, 30000)
+  bot.on('error', (err) => {
+    console.log(`${username} error:`, err.message)
   })
 }
 
-createBot()
-// --- Keep-alive ping server for Render ---
+// ===== START ALL BOTS (staggered) =====
+BOT_USERNAMES.forEach((name, index) => {
+  setTimeout(() => {
+    createBot(name)
+  }, index * 5000) // 5s delay between each bot
+})
+
+// ===== EXPRESS KEEP-ALIVE (RENDER) =====
 const express = require('express')
 const app = express()
 
 const PORT = process.env.PORT || 3000
 
-app.get('/', (req, res) => res.send('Bot is alive!'))
+app.get('/', (req, res) => {
+  res.send('Bots are running!')
+})
 
 app.listen(PORT, () => {
-  console.log(`Ping server running on port ${PORT}`)
+  console.log(`Keep-alive server running on port ${PORT}`)
 })
