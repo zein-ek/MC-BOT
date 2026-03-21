@@ -1,7 +1,7 @@
 const mineflayer = require('mineflayer')
 
 // ===== CONFIG =====
-const SERVER_HOST = 'UNEARTHED-cPZO.aternos.me'
+const SERVER_HOST = 'unearthed-smp.aternos.me:49899'
 const SERVER_PORT = 49899
 const BOT_PASSWORD = 'bot123'
 
